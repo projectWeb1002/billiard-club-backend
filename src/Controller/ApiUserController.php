@@ -137,16 +137,30 @@ class ApiUserController extends AbstractController
         if (null == $user) {
             return $this->json(['error' => 'User not found'], 400);
         }
-        if ($user->getPassword() !== $data['password']) {
-            return $this->json(['error' => 'Password not match'], 400);
-        }
+
         $response = $this->serializerInterface->serialize(
             [
                 'status' => 'success',
-                'userId' => $user->getId()
+                'userId' => $user->getId(),
+                'password' => $user->getPassword()
             ],
             'json'
         );
         return new Response($response, 200, ['Content-Type' => 'application/json']);
+    }
+
+    // put /api/forgot-password (json) => (json)
+    #[Route("/api/forgot-password", methods: ['PUT'], name: 'app_api_forgot_password')]
+    public function forgotPassword(EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
+        if (null == $user) {
+            return $this->json(['error' => 'User not found'], 400);
+        }
+        $user->setPassword($data['password']);
+        $entityManager->persist($user);
+        $entityManager->flush();
+        return $this->json('Password changed', 200, ['Content-Type' => 'application/json']);
     }
 }
