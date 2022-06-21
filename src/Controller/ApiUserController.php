@@ -20,7 +20,6 @@ class ApiUserController extends AbstractController
         $this->serializerInterface = $serializerInterface;
     }
     // post /api/register (json) => (json)
-
     #[Route('/api/register', methods: ['POST'], name: 'app_api_register')]
     public function register(EntityManagerInterface $entityManager, Request $request): Response
     {
@@ -95,7 +94,7 @@ class ApiUserController extends AbstractController
     public function getUserInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $user = $entityManager->getRepository(User::class)->findAll($data['userId']);
+        $user = $entityManager->getRepository(User::class)->findAll($data['user-id']);
 
         $userInfo = [];
 
