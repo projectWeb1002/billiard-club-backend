@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserInfoRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserInfoRepository::class)]
@@ -30,6 +31,9 @@ class UserInfo
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userInfos')]
     private $User;
+
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Order::class)]
+    private $orders;
 
     public function getId(): ?int
     {
@@ -104,6 +108,36 @@ class UserInfo
     public function setUser(?User $User): self
     {
         $this->User = $User;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): self
+    {
+        if (!$this->orders->contains($order)) {
+            $this->orders[] = $order;
+            $order->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): self
+    {
+        if ($this->orders->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getCustomer() === $this) {
+                $order->setCustomer(null);
+            }
+        }
 
         return $this;
     }

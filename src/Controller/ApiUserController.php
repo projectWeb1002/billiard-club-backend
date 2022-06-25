@@ -70,7 +70,7 @@ class ApiUserController extends AbstractController
     }
 
     // post /api/register/info (json) => (json)
-    #[Route("/api/register/info", methods: ['POST'], name: 'app_api_register_info')]
+    #[Route("/api/register-info", methods: ['POST'], name: 'app_api_register_info')]
     public function registerInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -94,7 +94,7 @@ class ApiUserController extends AbstractController
     public function getUserInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $user = $entityManager->getRepository(User::class)->findAll($data['user-id']);
+        $user = $entityManager->getRepository(User::class)->findAll($data['userId']);
 
         $userInfo = [];
 
@@ -102,6 +102,7 @@ class ApiUserController extends AbstractController
             if (null != $value->getUserInfos()) {
                 foreach ($value->getUserInfos() as $key => $value) {
                     $userInfo[] = [
+                        'userInfoId' => $value->getId(),
                         'name' => $value->getName(),
                         'email' => $value->getEmail(),
                         'phone' => $value->getPhone(),
