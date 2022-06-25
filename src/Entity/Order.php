@@ -25,6 +25,12 @@ class Order
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $status;
 
+    #[ORM\Column(type: 'date')]
+    private $CreatedAt;
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private $payment;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -85,6 +91,30 @@ class Order
     public function setStatus(?string $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->CreatedAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $CreatedAt): self
+    {
+        $this->CreatedAt = $CreatedAt;
+
+        return $this;
+    }
+
+    public function getPayment(): ?string
+    {
+        return $this->payment;
+    }
+
+    public function setPayment(string $payment): self
+    {
+        $this->payment = $payment;
 
         return $this;
     }
