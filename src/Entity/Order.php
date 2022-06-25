@@ -16,11 +16,20 @@ class Order
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'orders')]
+    #[ORM\ManyToOne(targetEntity: UserInfo::class, inversedBy: 'orders')]
     private $customer;
 
     #[ORM\OneToMany(mappedBy: 'OrderId', targetEntity: OrderDetail::class)]
     private $orderDetails;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $status;
+
+    #[ORM\Column(type: 'date')]
+    private $CreatedAt;
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private $payment;
 
     public function __construct()
     {
@@ -32,12 +41,12 @@ class Order
         return $this->id;
     }
 
-    public function getCustomer(): ?User
+    public function getCustomer(): ?UserInfo
     {
         return $this->customer;
     }
 
-    public function setCustomer(?User $customer): self
+    public function setCustomer(?UserInfo $customer): self
     {
         $this->customer = $customer;
 
@@ -70,6 +79,42 @@ class Order
                 $orderDetail->setOrderId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->CreatedAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $CreatedAt): self
+    {
+        $this->CreatedAt = $CreatedAt;
+
+        return $this;
+    }
+
+    public function getPayment(): ?string
+    {
+        return $this->payment;
+    }
+
+    public function setPayment(string $payment): self
+    {
+        $this->payment = $payment;
 
         return $this;
     }

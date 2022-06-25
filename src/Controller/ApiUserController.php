@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Order;
 use App\Entity\User;
 use App\Entity\UserInfo;
 use Doctrine\ORM\EntityManagerInterface;
@@ -70,7 +71,7 @@ class ApiUserController extends AbstractController
     }
 
     // post /api/register/info (json) => (json)
-    #[Route("/api/register/info", methods: ['POST'], name: 'app_api_register_info')]
+    #[Route("/api/register-info", methods: ['POST'], name: 'app_api_register_info')]
     public function registerInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -94,21 +95,20 @@ class ApiUserController extends AbstractController
     public function getUserInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $user = $entityManager->getRepository(User::class)->findAll($data['user-id']);
+        $user = $entityManager->getRepository(User::class)->find($data['userId']);
 
         $userInfo = [];
 
-        foreach ($user as $key => $value) {
-            if (null != $value->getUserInfos()) {
-                foreach ($value->getUserInfos() as $key => $value) {
-                    $userInfo[] = [
-                        'name' => $value->getName(),
-                        'email' => $value->getEmail(),
-                        'phone' => $value->getPhone(),
-                        'address' => $value->getAddress(),
-                        'dayOfBirth' => $value->getDateOfBirth()->format('Y-m-d'),
-                    ];
-                }
+        if (null != $user->getUserInfos()) {
+            foreach ($user->getUserInfos() as $key => $value) {
+                $userInfo[] = [
+                    'userInfoId' => $value->getId(),
+                    'name' => $value->getName(),
+                    'email' => $value->getEmail(),
+                    'phone' => $value->getPhone(),
+                    'address' => $value->getAddress(),
+                    'dayOfBirth' => $value->getDateOfBirth()->format('Y-m-d'),
+                ];
             }
         }
 
@@ -116,9 +116,9 @@ class ApiUserController extends AbstractController
             [
                 'status' => 'success',
                 'user' => [
-                    'id' => $user[0]->getId(),
-                    'username' => $user[0]->getUsername(),
-                    'rule' => $user[0]->getRule(),
+                    'id' => $user->getId(),
+                    'username' => $user->getUsername(),
+                    'rule' => $user->getRule(),
                     'userInfo' => $userInfo
                 ]
             ],
@@ -148,8 +148,8 @@ class ApiUserController extends AbstractController
         return new Response($response, 200, ['Content-Type' => 'application/json']);
     }
 
-    // put /api/forgot-password (json) => (json)
-    #[Route("/api/forgot-password", methods: ['PUT'], name: 'app_api_forgot_password')]
+    // patch /api/forgot-password (json) => (json)
+    #[Route("/api/forgot-password", methods: ['PATCH'], name: 'app_api_forgot_password')]
     public function forgotPassword(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -161,5 +161,39 @@ class ApiUserController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
         return $this->json('Password changed', 200, ['Content-Type' => 'application/json']);
+    }
+
+    // post /api/get-order (json) => (json)]
+    #[Route("/api/get-user-order", methods: ['POST'], name: 'app_api_get_user-order')]
+    public function getOrder(EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $user = $entityManager->getRepository(User::class)->find($data['userId']);
+        if (null == $user) {
+            return $this->json(['error' => 'User not found'], 400);
+        }
+
+        $userInfos = $user->getUserInfos();
+        $orderList = [];
+
+        foreach ($userInfos as $userInfo) {
+            $order = $userInfo->getOrders();
+            foreach ($order as $value) {
+                $orderList[] = [
+                    'orderId' => $value->getId(),
+                    'orderDate' => $value->getCreatedAt(),
+                    'orderStatus' => $value->getStatus(),
+                ];
+            }
+        }
+
+        $response = $this->serializerInterface->serialize(
+            [
+                'status' => 'success',
+                'order' => $orderList
+            ],
+            'json'
+        );
+        return new Response($response, 200, ['Content-Type' => 'application/json']);
     }
 }
