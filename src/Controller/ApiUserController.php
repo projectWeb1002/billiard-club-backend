@@ -148,19 +148,22 @@ class ApiUserController extends AbstractController
         return new Response($response, 200, ['Content-Type' => 'application/json']);
     }
 
-    // patch /api/forgot-password (json) => (json)
-    #[Route("/api/forgot-password", methods: ['PATCH'], name: 'app_api_forgot_password')]
-    public function forgotPassword(EntityManagerInterface $entityManager, Request $request): Response
+    // patch /api/update-account (json) => (json)
+    #[Route("/api/update-account", methods: ['PATCH'], name: 'app_api_update_account_status')]
+    public function updateAccountStatus(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
+        $user = $entityManager->getRepository(User::class)->find($data['userId']);
         if (null == $user) {
             return $this->json(['error' => 'User not found'], 400);
         }
-        $user->setPassword($data['password']);
+        if (isset($data['rule'])) $user->setRule($data['rule']);
+        if (isset($data['status'])) $user->setStatus($data['status']);
+        if (isset($data['password'])) $user->setPassword($data['password']);
+
         $entityManager->persist($user);
         $entityManager->flush();
-        return $this->json('Password changed', 200, ['Content-Type' => 'application/json']);
+        return $this->json('Account status changed', 200, ['Content-Type' => 'application/json']);
     }
 
     // post /api/get-order (json) => (json)]
@@ -194,6 +197,31 @@ class ApiUserController extends AbstractController
             ],
             'json'
         );
+        return new Response($response, 200, ['Content-Type' => 'application/json']);
+    }
+
+    // get /api/get-all-user => (json)
+    #[Route("/api/admin/get-all-user", methods: ['GET'], name: 'app_api_get_all_user')]
+    public function getAllUser(EntityManagerInterface $entityManager): Response
+    {
+        $user = $entityManager->getRepository(User::class)->findAll();
+        $userList = [];
+        foreach ($user as $value) {
+            $userList[] = [
+                'userId' => $value->getId(),
+                'username' => $value->getUsername(),
+                'rule' => $value->getRule(),
+                'status' => $value->getStatus(),
+            ];
+        }
+        $response = $this->serializerInterface->serialize(
+            [
+                'status' => 'success',
+                'user' => $userList
+            ],
+            'json'
+        );
+
         return new Response($response, 200, ['Content-Type' => 'application/json']);
     }
 }

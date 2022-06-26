@@ -27,6 +27,9 @@ class User
     #[ORM\OneToMany(mappedBy: 'User', targetEntity: UserInfo::class)]
     private $userInfos;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $status;
+
     public function __construct()
     {
         $this->userInfos = new ArrayCollection();
@@ -100,6 +103,18 @@ class User
                 $userInfo->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }
