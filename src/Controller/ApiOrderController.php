@@ -78,8 +78,8 @@ class ApiOrderController extends AbstractController
         return $this->json('Added info', 201, ['Content-Type' => 'application/json']);
     }
 
-    // post /api/order (json) => (json)
-    #[Route("/api/get-order", methods: ['POST'], name: 'app_api_get-order')]
+    // POST /api/order/detail (json) => (json)
+    #[Route("/api/order/detail", methods: ['POST'], name: 'app_api_get-order')]
     public function getOrder(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -91,8 +91,11 @@ class ApiOrderController extends AbstractController
         $orderDetail = $entityManager->getRepository(OrderDetail::class)->findAll($data['orderId']);
         $orderDetailResponse = [];
         foreach ($orderDetail  as $key => $value) {
+            $product = $entityManager->getRepository(Product::class)->findOneBy(['id' => $value->getProduct()]);
             $orderDetailResponse[] = [
                 'productId' => $value->getProduct(),
+                'productName' => $product->getName(),
+                'productPrice' => $product->getPrice(),
                 'amount' => $value->getAmount(),
             ];
         }

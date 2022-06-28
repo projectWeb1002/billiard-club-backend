@@ -29,7 +29,6 @@ class ApiUserController extends AbstractController
             return $this->json(['error' => 'No data'], 400);
         }
 
-
         $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
         if ($user) {
             return $this->json(['error' => 'User already exists'], 400);
@@ -62,7 +61,9 @@ class ApiUserController extends AbstractController
         $response = $this->serializerInterface->serialize(
             [
                 'status' => 'success',
-                'userId' => $userId
+                'userId' => $userId,
+                'username' => $user->getUsername(),
+                'rule' => $user->getRule(),
             ],
             'json'
         );
@@ -71,7 +72,7 @@ class ApiUserController extends AbstractController
     }
 
     // post /api/register/info (json) => (json)
-    #[Route("/api/register-info", methods: ['POST'], name: 'app_api_register_info')]
+    #[Route("/api/register/info", methods: ['POST'], name: 'app_api_register_info')]
     public function registerInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -82,7 +83,7 @@ class ApiUserController extends AbstractController
         $userInfo->setPhone($data['phone']);
         $userInfo->setAddress($data['address']);
         $userInfo->setDateOfBirth(new \DateTime($data['dayOfBirth']));
-        $user = $entityManager->getRepository(User::class)->find($data['user-id']);
+        $user = $entityManager->getRepository(User::class)->find($data['userId']);
         $userInfo->setUser($user);
 
         $entityManager->persist($userInfo);
@@ -91,7 +92,7 @@ class ApiUserController extends AbstractController
     }
 
     // post /api/user-info => (json)
-    #[Route("/api/user-info", methods: ['POST'], name: 'app_api_users')]
+    #[Route("/api/user/info", methods: ['POST'], name: 'app_api_users')]
     public function getUserInfo(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -141,7 +142,9 @@ class ApiUserController extends AbstractController
             [
                 'status' => 'success',
                 'userId' => $user->getId(),
-                'password' => $user->getPassword()
+                'password' => $user->getPassword(),
+                'username' => $user->getUsername(),
+                'rule' => $user->getRule(),
             ],
             'json'
         );
@@ -153,7 +156,7 @@ class ApiUserController extends AbstractController
     public function updateAccountStatus(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $user = $entityManager->getRepository(User::class)->find($data['userId']);
+        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
         if (null == $user) {
             return $this->json(['error' => 'User not found'], 400);
         }
@@ -167,7 +170,7 @@ class ApiUserController extends AbstractController
     }
 
     // post /api/get-order (json) => (json)]
-    #[Route("/api/get-user-order", methods: ['POST'], name: 'app_api_get_user-order')]
+    #[Route("/api/user/order", methods: ['POST'], name: 'app_api_get_user-order')]
     public function getOrder(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -186,6 +189,7 @@ class ApiUserController extends AbstractController
                     'orderId' => $value->getId(),
                     'orderDate' => $value->getCreatedAt(),
                     'orderStatus' => $value->getStatus(),
+                    'orderPayment' => $value->getPayment(),
                 ];
             }
         }
@@ -193,7 +197,7 @@ class ApiUserController extends AbstractController
         $response = $this->serializerInterface->serialize(
             [
                 'status' => 'success',
-                'order' => $orderList
+                'orders' => $orderList
             ],
             'json'
         );

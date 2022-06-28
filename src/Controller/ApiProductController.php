@@ -48,8 +48,8 @@ class ApiProductController extends AbstractController
         return $this->json(['productId' => $product->getId()], 201, ['Content-Type' => 'application/json']);
     }
 
-    // patch /api/update-product (json) => (json)
-    #[Route('/api/update-product', methods: ['PATCH'], name: 'app_api_update_product')]
+    // put /api/update-product (json) => (json)
+    #[Route('/api/update-product', methods: ['PUT'], name: 'app_api_update_product')]
     public function updateProduct(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -118,31 +118,44 @@ class ApiProductController extends AbstractController
     }
 
     // post /api/get-products (json) => (json)
-    #[Route('/api/get-products', methods: ['POST'], name: 'app_api_get_products')]
+    #[Route('/api/product/list', methods: ['POST'], name: 'app_api_get_products')]
     public function getProducts(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        // if (empty($data)) {
-        //     return $this->json(
-        //         ['error' => 'No data'],
-        //         400
-        //     );
-        // }
+        if (empty($data)) {
+            return $this->json(
+                ['error' => 'No data'],
+                400
+            );
+        }
 
         $products = $entityManager->getRepository(Product::class)->findAll();
 
         $response = [];
-        foreach ($products as $product) {
-            if ($product->getCategory() == $data['category']) {
+        if ($data['category'] == 'all') {
+            foreach ($products as $product) {
                 $response[] = [
-                    'productId' => $product->getId(),
+                    'id' => $product->getId(),
                     'name' => $product->getName(),
                     'price' => $product->getPrice(),
                     'amount' => $product->getAmount(),
                     'image' => $product->getImage(),
-                    // 'category' => $product->getCategory()
+                    'category' => $product->getCategory(),
                 ];
+            }
+        } else {
+            foreach ($products as $product) {
+                if ($product->getCategory() == $data['category']) {
+                    $response[] = [
+                        'id' => $product->getId(),
+                        'name' => $product->getName(),
+                        'price' => $product->getPrice(),
+                        'amount' => $product->getAmount(),
+                        'image' => $product->getImage(),
+                        'category' => $product->getCategory()
+                    ];
+                }
             }
         }
 
