@@ -40,6 +40,9 @@ class ApiOrderController extends AbstractController
         if (isset($data['status'])) {
             $order->setStatus($data['status']);
         }
+        if (isset($data['payment'])) {
+            $order->setPayment($data['payment']);
+        }
         $order->setCreatedAt(new \DateTime());
 
         $entityManager->persist($order);
