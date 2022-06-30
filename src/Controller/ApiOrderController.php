@@ -28,13 +28,10 @@ class ApiOrderController extends AbstractController
     public function order(EntityManagerInterface $entityManager, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-
         if (empty($data)) {
             return $this->json(['error' => 'No data'], 400);
         }
-
         $order = new Order();
-
         $user = $entityManager->getRepository(UserInfo::class)->find($data['userInfoId']);
         $order->setCustomer($user);
         if (isset($data['status'])) {
@@ -44,7 +41,6 @@ class ApiOrderController extends AbstractController
             $order->setPayment($data['payment']);
         }
         $order->setCreatedAt(new \DateTime());
-
         $entityManager->persist($order);
         $entityManager->flush();
         return $this->json(['orderId' => $order->getId()], 201, ['Content-Type' => 'application/json']);

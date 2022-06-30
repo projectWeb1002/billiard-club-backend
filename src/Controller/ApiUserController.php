@@ -78,6 +78,14 @@ class ApiUserController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $userInfo = new UserInfo();
+
+        if (strlen($data['name']) > 20) {
+            return $this->json(['error' => 'Name is too long'], 400);
+        }
+        if (strlen($data['name']) < 3) {
+            return $this->json(['error' => 'Name is too short'], 400);
+        }
+
         $userInfo->setName($data['name']);
         $userInfo->setEmail($data['email']);
         $userInfo->setPhone($data['phone']);
